@@ -36,15 +36,34 @@ def getcontours(img):
     contours,hierachy=cv2.findContours(img,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_NONE)
     for cnt in contours:
         area=cv2.contourArea(cnt)
-        print(area)
-        cv2.drawContours(imgcontour,cnt,-1,(255,0,0),3)
+        if area > 0:
+            print(area)
+            cv2.drawContours(imgcontour, cnt, -1, (255, 0, 0), 3)
+            peri = cv2.arcLength(cnt, True)
+            #print(peri)
+            approx=cv2.approxPolyDP(cnt,0.02*peri,True)
+            print(len(approx))
+            objCor=len(approx)
+            x,y,w,h=cv2.boundingRect(approx)
+            if objCor==3:objType="Tri"
+            elif objCor==4:
+                aspectratio=w/float(h)
+                if aspectratio>0.95 and aspectratio<1.05:objType="Square"
+                else:objType="Rectangle"
+            elif objCor>4:objType="Circle"
+            else:objType="None"
+
+            cv2.rectangle(imgcontour,(x,y),(x+w,y+h),(0,0,0),2)
+            cv2.putText(imgcontour,objType,((x+w//2)-70,(y+w//2)-10),cv2.FONT_HERSHEY_COMPLEX,1,(0,0,0),2)
 
 
-path=r"shapes.png"
+
+
+path=r"shapes2.jpg"
 img=cv2.imread(path)
 
 imgGray=cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
-imgBlur=cv2.GaussianBlur(imgGray,(7,7),0.5)
+imgBlur=cv2.GaussianBlur(imgGray,(7,7),1)
 imgCanny=cv2.Canny(imgBlur,50,50)
 imgBlank=np.zeros_like(img)
 imgcontour=img.copy()
